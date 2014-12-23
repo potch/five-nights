@@ -27,12 +27,23 @@ ctx.fillRect(0,177,WIDTH,64);
 
 var c = [1, 2, 3, 2];
 
+var specialKeys = {
+  37: 'left',
+  38: 'up',
+  39: 'right',
+  40: 'down'
+};
+
 var keys = {};
 window.addEventListener('keydown', function (e) {
-  keys[e.key.toLowerCase()] = true;
+  if (e.keyCode in specialKeys) {
+    keys[specialKeys[e.keyCode]] = true;
+  }
 });
 window.addEventListener('keyup', function (e) {
-  keys[e.key.toLowerCase()] = false;
+  if (e.keyCode in specialKeys) {
+    keys[specialKeys[e.keyCode]] = false;
+  }
 });
 
 var pos = 0;
