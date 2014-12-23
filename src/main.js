@@ -16,6 +16,14 @@ var ctx = canvas.getContext('2d');
 ctx.mozImageSmoothingEnabled = false;
 ctx.imageSmoothingEnabled = false;
 
+ctx.save();
+ctx.scale(ZOOM, ZOOM);
+
+ctx.fillRect(0,176,WIDTH,1);
+ctx.fillStyle = '#503000';
+ctx.fillRect(0,177,WIDTH,64);
+
+
 var c = [1, 2, 3, 2];
 
 var keys = {};
@@ -39,12 +47,21 @@ var limit = 2;
 var thud = 0;
 var changed = false;
 
+var char = {
+  lspeed: 2,
+  aspeed: 3,
+  djump: true,
+  jump: 8
+};
+
+
 var i = new Image();
 i.onload = function () {
   function draw() {
     p = dir * 4 + pos;
-    ctx.clearRect(0, 0, width, height);
-    ctx.drawImage(i, p * 16, 32, 16, 32, x*ZOOM, (160-y)*ZOOM, 16*ZOOM, 32*ZOOM);
+    ctx.fillStyle = '#a4e4fc';
+    ctx.fillRect(0, 0, WIDTH, HEIGHT-16);
+    ctx.drawImage(i, p * 16, 32, 16, 32, x, (144-y), 16, 32);
     requestAnimationFrame(draw, 150);
   }
   draw();
@@ -62,6 +79,7 @@ i.onload = function () {
     }
     setTimeout(game, 10);
   }
+  var djump = true;
   function tick() {
     if (keys.right && !keys.left) {
       dir = 0;
@@ -71,8 +89,9 @@ i.onload = function () {
       dir = 1;
       vx -= 1;
     }
+    limit = char.lspeed;
     if (y > 0) {
-      limit = 2;
+      limit = char.aspeed;
     }
     if (vx > limit) {
       vx = limit;
@@ -90,10 +109,11 @@ i.onload = function () {
     if (x > WIDTH - 16) {
       x = WIDTH - 16;
     }
-    y = Math.round(y + vy);
+    y = y + Math.round(vy);
     if (y > 0) {
       vy = vy - 0.5;
     } else {
+      djump = true;
       if (y <= 0 && vy < 0) {
         thud = 2;
       }
@@ -104,7 +124,11 @@ i.onload = function () {
       thud--;
     }
     if (keys.up && y === 0 && thud === 0) {
-      vy = 8;
+      vy = char.jump;
+    }
+    if (char.djump && keys.up && y > 0 && vy < -5 && djump) {
+      djump = false;
+      vy = char.jump;
     }
     if (y > 0) {
       pos = 1;
