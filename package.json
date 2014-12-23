@@ -1,0 +1,21 @@
+{
+  "name": "five-nights",
+  "version": "1.0.0",
+  "description": "",
+  "main": "game.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "browserify src/main.js > game.js",
+    "watch": "watch 'npm run build' src"
+  },
+  "keywords": [
+    "ipa",
+    "game"
+  ],
+  "author": "potch",
+  "license": "ISC",
+  "devDependencies": {
+    "browserify": "^7.0.3",
+    "watch": "^0.13.0"
+  }
+}
