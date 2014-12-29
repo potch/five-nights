@@ -6,6 +6,16 @@ var ZOOM = 3;
 var width = WIDTH * ZOOM;
 var height = HEIGHT * ZOOM;
 
+var controller = require('./controller');
+var keyboard = require('./keyboard');
+
+var pad = controller({
+  'left': 'button',
+  'right': 'button',
+  'jump': 'button',
+  'start': 'button'
+});
+
 var canvas = document.createElement('canvas');
 canvas.width = width;
 canvas.height = height;
@@ -26,24 +36,7 @@ ctx.fillRect(0,177,WIDTH,64);
 
 var c = [1, 2, 3, 2];
 
-var specialKeys = {
-  37: 'left',
-  38: 'up',
-  39: 'right',
-  40: 'down'
-};
-
-var keys = {};
-window.addEventListener('keydown', function (e) {
-  if (e.keyCode in specialKeys) {
-    keys[specialKeys[e.keyCode]] = true;
-  }
-});
-window.addEventListener('keyup', function (e) {
-  if (e.keyCode in specialKeys) {
-    keys[specialKeys[e.keyCode]] = false;
-  }
-});
+var keys = keyboard();
 
 var pos = 0;
 var walk = 0;
@@ -58,13 +51,40 @@ var limit = 2;
 var thud = 0;
 var changed = false;
 
-var char = {
-  lspeed: 2,
-  aspeed: 3,
-  djump: true,
-  jump: 8
-};
+var chars = [
+  {
+    row: 0,
+    lspeed: 3,
+    aspeed: 3,
+    djump: false,
+    jump: 8
+  },
+  {
+    row: 1,
+    lspeed: 3,
+    aspeed: 3,
+    djump: true,
+    jump: 6
+  },
+  {
+    row: 2,
+    lspeed: 2,
+    aspeed: 3,
+    djump: true,
+    jump: 6
+  },
+  {
+    row: 3,
+    lspeed: 2,
+    aspeed: 3,
+    djump: false,
+    jump: 7
+  }
+];
 
+var charid = 0;
+var char = chars[0];
+var debounceChar = false;
 
 var i = new Image();
 i.onload = function () {
@@ -72,13 +92,14 @@ i.onload = function () {
     p = dir * 4 + pos;
     ctx.fillStyle = '#a4e4fc';
     ctx.fillRect(0, 0, WIDTH, HEIGHT-16);
-    ctx.drawImage(i, p * 16, 32, 16, 32, x, (144-y), 16, 32);
+    ctx.drawImage(i, p * 16, 32 + char.row * 32, 16, 32, x, (144-y), 16, 32);
     requestAnimationFrame(draw, 150);
   }
   draw();
   var start = Date.now();
   var frame = 0;
   var t;
+
   function game() {
     t = Date.now() - start;
     var g = t / 16;
@@ -90,16 +111,25 @@ i.onload = function () {
     }
     setTimeout(game, 10);
   }
+
   var djump = true;
+
   function tick() {
-    if (keys.right && !keys.left) {
+    pad.poll();
+    if ((keys.right && !keys.left) || (pad.check('right') && !pad.check('left'))) {
       dir = 0;
       vx += 1;
     }
-    if (keys.left && !keys.right) {
+    if (keys.left && !keys.right || (pad.check('left') && !pad.check('right'))) {
       dir = 1;
       vx -= 1;
     }
+    if (keys.char && !debounceChar && y === 0) {
+      charid = (charid + 1) % chars.length;
+      char = chars[charid];
+      vy = 2;
+    }
+    debounceChar = keys.char;
     limit = char.lspeed;
     if (y > 0) {
       limit = char.aspeed;
@@ -110,7 +140,7 @@ i.onload = function () {
     if (vx < -limit) {
       vx = -limit;
     }
-    if (!(keys.right ^ keys.left)) {
+    if (!(keys.right ^ keys.left) && !(pad.check('right') ^ pad.check('left'))) {
       vx = 0;
     }
     x = x + vx;
@@ -134,10 +164,10 @@ i.onload = function () {
     if (thud > 0) {
       thud--;
     }
-    if (keys.up && y === 0 && thud === 0) {
+    if ((keys.up || pad.check('jump')) && y === 0 && thud === 0) {
       vy = char.jump;
     }
-    if (char.djump && keys.up && y > 0 && vy < -5 && djump) {
+    if (char.djump && (keys.up || pad.check('jump')) && y > 0 && vy < 0 && djump) {
       djump = false;
       vy = char.jump;
     }
