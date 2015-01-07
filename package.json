@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "browserify src/main.js > game.js",
-    "watch": "watch 'npm run build' src"
+    "watch": "onchange 'src/*' -- npm run build"
   },
   "keywords": [
     "ipa",
@@ -16,6 +16,6 @@
   "license": "ISC",
   "devDependencies": {
     "browserify": "^7.0.3",
-    "watch": "^0.13.0"
+    "onchange": "0.0.2"
   }
 }
